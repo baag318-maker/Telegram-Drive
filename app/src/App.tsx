@@ -34,6 +34,24 @@ function AppContent() {
   const { isMobile } = usePlatform();
   const { settings, updateSetting, isLoaded } = useSettings();
   const { i18n } = useTranslation();
+  // Prevent back button from exiting the app when modals/previews are active
+useEffect(() => {
+  // Push an initial history state
+  window.history.pushState({ page: 'app' }, '');
+
+  const handlePopState = (event: PopStateEvent) => {
+    // Re-push state so app doesn't exit immediately on back key
+    window.history.pushState({ page: 'app' }, '');
+    
+    // Dispatch a custom event so components (like Video/PDF viewer) can listen and close
+    window.dispatchEvent(new CustomEvent('app:back-pressed'));
+  };
+
+  window.addEventListener('popstate', handlePopState);
+  return () => {
+    window.removeEventListener('popstate', handlePopState);
+  };
+}, []);
 
   // Handle active language and RTL direction changes
   useEffect(() => {
